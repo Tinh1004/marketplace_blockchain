@@ -1,61 +1,37 @@
 *{
-  margin: 0;
-  padding: 0;
-}
-h1, h2{
-  text-align: center;
-
-}
-h1 {
-  padding: 1rem 0;
-}
-
-#container{
- height: 100px;
- width: 100%;
-}
-
-label{
-  display: inline-block;
-  width: 20%;
-  height: 50px;
-  padding-left:2rem;
-  font-size:  16px;
-  font-weight: bold;
-}
-input{
-  width:50%;
-  height: 25px;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
 }
 
 
-button{
-  padding: 0.5rem 1rem;
-  border: none;
-  background-color: rgb(78, 217, 241);
-  cursor: pointer;
-  border-radius: 5px;
-  transform: translateX(2rem);
+.menu-header{
+    height:60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #00828c;
+    padding-left: 2rem;
+    box-shadow: 0px 6px 6px  rgb(15, 15, 15,0.5);
+}
+.menu-header a{
+    text-decoration: none;
+
 }
 
-table{
-  width: 90%;
-  margin: 0 auto;
-  text-align: center;
-  border-spacing: 0;
-    border-collapse: collapse;
+.menu-header .logo p{
+    font-size: 40px;
+    color: white;
+    font-weight: bold;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
-table tr{
-  height: 50px;
-}
-table thead{
-  background-color: grey;
-}
-table tbody tr{
-  border-bottom: 1px solid #ccc;
+p {
+    color: white;
+    padding: 0 1rem;
 }
 
-#list{
-  margin-top: 2rem;
+.header .login p{
+    text-decoration: none;
+    font-size: 16px;
 }
