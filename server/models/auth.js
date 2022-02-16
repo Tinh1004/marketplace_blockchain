@@ -23,9 +23,13 @@ const authSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    state: {
+        type: Boolean,
+        default: false
+    },
     role: {
         type: Boolean,
-        default: true,
+        default: false,
     }
 })
 

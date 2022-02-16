@@ -44,7 +44,7 @@
     background-color: rgb(78, 217, 241);
     cursor: pointer;
     border-radius: 5px;
-    transform: translateX(2rem);
+    /* transform: translateX(2rem); */
   }
   
   table{
@@ -63,8 +63,4 @@
   }
   table tbody tr{
     border-bottom: 1px solid #ccc;
-  }
-  
-  #list{
-    margin-top: 2rem;
   }

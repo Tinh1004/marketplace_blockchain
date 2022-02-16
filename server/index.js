@@ -4,7 +4,10 @@ const app = express();
 const mongoose = require('mongoose');
 
 const userRoute = require('./routes/authRoute.js');
+const productRoute = require('./routes/productRoute.js');
+
 const PORT = 5000;
+
 MONGODB_URL= 'mongodb+srv://learnnodejs:learnnodejslearnnodejslearnnodejs@cluster0.wdwpr.mongodb.net/test?retryWrites=true&w=majority';
 mongoose.connect(
     MONGODB_URL, 
@@ -15,7 +18,10 @@ mongoose.connect(
 
 app.use(express.json());
 app.use(cors());
+
+//API
 app.use('/auth', userRoute);
+app.use('/api/products', productRoute);
 
 app.listen(PORT,()=>{
     console.log(`Server is runningon PORT ${PORT}`);

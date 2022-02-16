@@ -1,192 +1,147 @@
-import React, { Component } from "react";
+import React, { Component, useState, useEffect } from "react";
 import ItemManagerContract from "../../contracts/ItemManager.json";
 import ItemContract from "../../contracts/Item.json";
-import ListItem from "../../components/ListItem"
+import ListItem from "../../components/item/ListItem"
 import getWeb3 from "../../getWeb3";
 
 import "./home.css";
+import axios from "axios";
 
-class HomePage extends Component {
-  state = { 
-    loaded: false, 
-    cost: 0 , 
-    itemName: "My supplyChain_1", 
-    listItems:  [],
-  };
+function HomePage(props) {
+  const [listItems, setListItem] = useState([]);
+  const [account, setAccount] = useState();
+  const [web3, setWeb3] = useState();
+  const [networkId, setNetworkId] = useState();
+  const [itemManager, setItemManager] = useState();
 
-  componentDidMount = async () => {
-    try {
-      // Get network provider and web3 instance.
-      this.web3 = await getWeb3();
-
-      // Use web3 to get the user's accounts.
-      this.accounts = await this.web3.eth.getAccounts();
-
-      // Get the contract instance.
-      this.networkId = await this.web3.eth.net.getId();
-
-      this.itemManager = new this.web3.eth.Contract(
-        ItemManagerContract.abi,
-        ItemManagerContract.networks[this.networkId] && ItemManagerContract.networks[this.networkId].address,
-      );
-
-      this.item = new this.web3.eth.Contract(
-        ItemContract.abi,
-        ItemContract.networks[this.networkId] && ItemContract.networks[this.networkId].address,
-      );
-      this.setState({ loaded: true});
-      this.getList();
-    } catch (error) {
-      // Catch any errors for any of the above operations.
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`,
-      );
-      console.error(error);
+  useEffect(() => {
+    if (props.web3) {
+      setWeb3(props.web3);
     }
-  };
+  },[props.web3])
 
-  getList = async () => {
-    let indexItem = await this.itemManager.methods.getItemIndex().call();
-    let indexBuyer = await this.itemManager.methods.getBuyerIndex().call();
-
+  useEffect(() => {
+      if (props.addressUser) {
+        setAccount(props.addressUser);
+      }
+  },[props.addressUser])
   
-    console.log(indexBuyer);
+  const getList = async () => {
     let newlist = []
-    for(let i = 0; i < indexItem; i++) {
-      let itemObject = await this.itemManager.methods.items(i).call();
+    console.log("check");
+    try {
 
-      let item = new this.web3.eth.Contract(
-        ItemContract.abi,
-        itemObject._itemAddress,
-      );
+      await axios.get(`http://localhost:5000/api/products/getProducts`).then(res => {
+          const persons = res.data;
+          for(let i = 0; i < persons.length; i++){
+            if(persons[i].step === 0){
 
-      let addressOwner = await item.methods.addressOwner().call();
-      const _price = this.web3.utils.fromWei(`${itemObject._itemPrice}`,`ether`)
-      const newItem = new It(
-          i, 
-          itemObject._identifier, 
-          _price, 
-          itemObject._state, 
-          itemObject._itemAddress, 
-          addressOwner
-        );
+              const price = web3.utils.fromWei(`${persons[i].price}`, 'ether');
+
+              const newItem = new It(
+                persons[i].indexProduct, 
+                persons[i].nameProuct, 
+                price, 
+                persons[i].step, 
+                persons[i].addressItem, 
+                persons[i].addressCreator,
+                persons[i].urlImage,
+              );
+              newlist.push(newItem);
+            }
+        
+          }
+          console.log(persons[0])
+      })
+    } catch (err) {
+      console.log(err)
+      console.log("Error loading")
+  }
+    setListItem(newlist)
+  }
+
+  const getNetworkId = async ()=>{
+    const network = await web3.eth.net.getId();
+    const _itemManager = new web3.eth.Contract(
+      ItemManagerContract.abi,
+      ItemManagerContract.networks[network] && ItemManagerContract.networks[network].address
+    );
+    console.log(_itemManager)
+    setItemManager(_itemManager);
+  }
+
+  useEffect(() => {
+    if(web3){
+      console.log(itemManager)
+      getList();
+      getNetworkId();
+    }
+  },[web3]);
+
+  const handCLickPaid = async (item) =>{
+    console.log("itemManager",itemManager)
+    console.log(item.price);
+    console.log(web3.utils.toWei(`${item.price}`, 'ether'))
+    console.log(item.addressItem)
+    console.log(account[0])
+    try{
+      let result =  await itemManager.methods.triggerPayment(item.index).send({to: item.addressItem, value: web3.utils.toWei(`${item.price}`, 'ether') , from: account});
       
-      newlist.push(newItem);
-    }
-    
-    this.setState({ 
-      listItems: newlist,
-    });
-  }
+      const res = await axios.patch(`http://localhost:5000/api/products/update/${item.addressItem}`, {
+        step: 1
+      }).then(res =>{ 
+        const person = res.data;
+        console.log(person)
+      });
 
-  listenToPaymentEvent = () =>{
-    let self = this;
-    this.itemManager.events.SupplyChainStep().on("data", async function(evt){
-      // console.log(evt);
-      let itemObject = await self.itemManager.methods.items(evt.returnValues._itemIndex).call();
-      alert("Item " + itemObject._identifier + "was paid, deliver it now");
-    })
-  }
+      const postBuyer = await axios.post(`http://localhost:5000/api/products/postBuyProduct/${item.ownerAddress}`, {
+        nameProuct : item.identifier,
+        price : item.price,
+        addressCreator : item.ownerAddress,
+        addressItem : item.addressItem,
+        addressBuyer : account,
+        urlImage: item.urlImage
 
+      }).then(res =>{ 
+        const person = res.data;
+        console.log(person)
+      });
 
-  handleInputChange = (event)=>{
-    const target = event.target;
-    const  value = target.type === "checkbox"? target.checked : target.value;
-    const name = target.name;
-    
-    this.setState({ 
-      [name]: value,
-    });
-
-  }
-
-  handleSubmit = async ()=>{
-
-    try{
-      const {cost, itemName} = this.state;
-      let result =  await this.itemManager.methods.createItem(itemName, this.web3.utils.toWei(`${cost}`, 'ether'), this.accounts[0])
-        .send({from: this.accounts[0]});
-  
-      console.log(result.events.SupplyChainStep.returnValues._itemAddress);
-      const itemIndex = result.events.SupplyChainStep.returnValues._itemIndex;
-      const step = result.events.SupplyChainStep.returnValues._step;
-      const address = result.events.SupplyChainStep.returnValues._itemAddress;
-
-      const newItem = new It(itemIndex, itemName, cost, step, address, this.accounts[0]);
-  
-      this.setState(prevState  => (
-        { 
-          listItems: [...prevState.listItems, newItem],
-        }
-      ));
-      alert("Send " + cost + " Wei to "+ result.events.SupplyChainStep.returnValues._itemAddress);
-
-    }catch(err){
-      alert(err.message)
-    }
-  }
-
-  handCLickPaid = async (item) =>{
-    try{
-      let result =  await this.itemManager.methods.triggerPayment(item.index).send({to: item.addressItem, value: this.web3.utils.toWei(`${item.price}`, 'ether') , from: this.accounts[0]});
-      this.getList();
       alert("Paided item: " + item.addressItem);
     } catch(e){
-      alert("Paided failed ");
+      console.log(e)
     }
-
-    
   }
 
-  handCLickDelivered = async (item) =>{
+  const handCLickDelivered = async (item) =>{
     try{
-      let result =  await this.itemManager.methods.triggerDelivery(item.index).send({from: this.accounts[0]});
-      this.getList();
+      let result =  await itemManager.methods.triggerDelivery(item.index).send({from: account[0]});
       alert("Delivered item: " + item.addressItem);
     } catch(e){
       alert("Delivered failed ");
     }
+  } 
 
-  }
-
-  render() {
-    if (!this.state.loaded) {
-      return <div>Loading Web3, accounts, and contract...</div>;
-    }
-    return (
-      <div >
-        <div id="create">
-          <h2>Add Items</h2>
-
-          <div id="container">
-            <div id="cost" className="form-create">
-              <label htmlFor="cost">Cost in ether:</label><input type="number" name="cost" value={this.state.cost} onChange={this.handleInputChange}/>
-            </div>
-            <div id="itemName" className=" form-create">
-              <label htmlFor="itemName">Item Identifier:</label><input type="text" name="itemName" value={this.state.itemName} onChange={this.handleInputChange}/>
-            </div>
-            <button type="button" onClick={this.handleSubmit}>Create new Item</button>
-          </div>
-        </div>
-
-        <ListItem 
-          listItems = {this.state.listItems} 
-          itemManager = {this.itemManager} 
-          handCLickPaid = {this.handCLickPaid}
-          handCLickDelivered = {this.handCLickDelivered}
-        ></ListItem>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <ListItem 
+        listItems = {listItems} 
+        itemManager = {itemManager} 
+        handCLickPaid = {handCLickPaid}
+        handCLickDelivered = {handCLickDelivered}
+      ></ListItem>
+    </div>
+  );
 }
 
-function It(index, identifier, price, step, addressItem, ownerAddress){
+function It(index, identifier, price, step, addressItem, ownerAddress, urlImage){
   this.index = index;
   this.identifier = identifier;
   this.price = price;
   this.step = step;
   this.addressItem = addressItem;
   this.ownerAddress = ownerAddress;
+  this.urlImage = urlImage;
 }
 
 export default HomePage;

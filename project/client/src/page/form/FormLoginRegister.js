@@ -9,7 +9,7 @@ class FormLoginRegister extends React.Component {
     super(props);
     this.state = {
       isLogginActive: true, 
-      account : ''
+      account : '', 
     };
   }
 
@@ -24,7 +24,6 @@ class FormLoginRegister extends React.Component {
           // Get the contract instance.
         this.networkId = await this.web3.eth.net.getId();
 
-        console.log(this.accounts[0])
         this.setState({account: this.accounts[0]})
       } catch (error) {
         // Catch any errors for any of the above operations.
@@ -53,16 +52,15 @@ class FormLoginRegister extends React.Component {
     const current = isLogginActive ? "Register" : "Login";
     const currentActive = isLogginActive ? "login" : "register";
 
-    console.log(this.state.account);
     return (
       <div className="App">
         <div className="login">
           <div className="container" ref={ref => (this.container = ref)}>
             {isLogginActive && (
-              <Login account={this.state.account} containerRef={ref => (this.current = ref)} />
+              <Login handleClickSuccess = {this.props.handleClickSuccess} account={this.props.addressUser} containerRef={ref => (this.current = ref)} />
             )}
             {!isLogginActive && (
-              <Register account={this.state.account} containerRef={ref => (this.current = ref)} />
+              <Register account={this.props.addressUser} containerRef={ref => (this.current = ref)} />
             )}
           </div>
           <RightSide
