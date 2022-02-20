@@ -57,10 +57,21 @@ class FormLoginRegister extends React.Component {
         <div className="login">
           <div className="container" ref={ref => (this.container = ref)}>
             {isLogginActive && (
-              <Login handleClickSuccess = {this.props.handleClickSuccess} account={this.props.addressUser} containerRef={ref => (this.current = ref)} />
+              <Login 
+                isLoading={this.props.isLoading}
+                handleChangeLogin={this.props.handleChangeLogin}
+                handleClickSuccess = {this.props.handleClickSuccess} 
+                account={this.props.addressUser} 
+                containerRef={ref => (this.current = ref)} />
             )}
             {!isLogginActive && (
-              <Register account={this.props.addressUser} containerRef={ref => (this.current = ref)} />
+              <Register 
+                isLoading = {this.props.isLoading} 
+                handleChangeLogin={this.props.handleChangeLogin}
+                account={this.props.addressUser} 
+                containerRef={ref => (this.current = ref)} 
+                changeState = {this.changeState}
+              />
             )}
           </div>
           <RightSide

@@ -54,7 +54,6 @@ contract ItemManager is Ownable{
 
     function triggerDelivery(uint _itemIndex)public {        
         require(items[_itemIndex]._state == SupplyChainState.Paided, "Item is further in the chain!");
-        require(items[_itemIndex]._state == SupplyChainState.Paided, "Item is further in the chain!");
         items[_itemIndex]._state = SupplyChainState.Delivered;
         emit SupplyChainStep(_itemIndex, uint(items[_itemIndex]._state), address(items[_itemIndex]._item));
     }

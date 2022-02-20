@@ -4,7 +4,7 @@ const authController = require('../controllers/auth');
 router.post('/register', authController.postRegister);
 
 router.post('/login', authController.postLogin);
-router.post('/logout', authController.logout);
+router.get('/logout', authController.logout);
 
 router.patch('/updateStateUser/:addressUser', authController.updateStateUser);
 

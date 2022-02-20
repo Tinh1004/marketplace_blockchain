@@ -15,7 +15,7 @@ exports.getProducts = async(req, res) => {
 exports.postProduct = async(req, res) => {
     try {
         const addressItemExist = await Product.findOne({addressItem: req.body.addressItem});
-        if(addressItemExist) return res.status(400).json({
+        if(addressItemExist) return res.status(500).json({
             success: false,
             message: 'address Item Exist!',
         });
@@ -61,6 +61,22 @@ exports.updateProduct = async(req, res) => {
     }
 }
 
+exports.updateBuyer = async(req, res) => {
+    const addressItem = req.params.addressItem;
+   try {
+        await Buyer.findOneAndUpdate(
+            { addressItem: addressItem },
+            {
+                step: 2,
+            },
+        );
+        return res.status(200).send({success: true , message: "update Success"});
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("update failed");
+    }
+}
+
 exports.postBuyProduct = async(req, res) => {
     const addressItemExist = await Buyer.findOne({addressItem: req.body.addressItem});
     if(addressItemExist) return res.status(404).json({
@@ -83,8 +99,19 @@ exports.getAllBuyerProduct = async(req, res) => {
     const addressBuyer = req.params.addressBuyer;
     const products = await Buyer.find({addressBuyer: addressBuyer}); 
     if(products.length > 0){
-        res.send(products)
+        res.json(products)
     }else{
-        res.send({ type: 400, message:"not found"})
+        res.status(500).json({ success: false, message:"not found"})
+    }
+}
+
+exports.getAllProductOfCreator = async(req, res) => {
+    console.log("All Product of Creator")
+    const addressOwner = req.params.addressOwner;
+    const products = await Product.find({addressCreator: addressOwner}); 
+    if(products.length > 0){
+        res.json(products)
+    }else{
+        res.status(500).json({ success: false, message:"not found"})
     }
 }

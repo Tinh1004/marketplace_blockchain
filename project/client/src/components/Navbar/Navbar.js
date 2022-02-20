@@ -3,6 +3,8 @@ import { Link, useHistory } from "react-router-dom";
 import "./Navbar.css";
 import getWeb3 from "../../getWeb3";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 const Navbar = (props) => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -27,16 +29,19 @@ const Navbar = (props) => {
   useEffect(() => {
     if (props.web3) {
       setWeb3(props.web3);
-      if (localStorage.getItem("accessToken")) {
-        const addrr = JSON.parse(localStorage.getItem("accessToken"));
-        if (addressUser != addrr.userAddress && addressUser) {
-          localStorage.removeItem("accessToken");
-          history.replace("/login")
-        }
-        setIsAdmin(addrr.admin);
-      }
     }
-  }, [props.web3])
+  }, [props.web3]);
+
+  useEffect(() => {
+    if (localStorage.getItem("accessToken")) {
+      const addrr = JSON.parse(localStorage.getItem("accessToken"));
+      if (addressUser != addrr.userAddress && addressUser) {
+        localStorage.removeItem("accessToken");
+        history.replace("/login")
+      }
+      setIsAdmin(addrr.admin);
+    }
+  },[])
 
   const address = async () => {
     const web3 = await getWeb3();
@@ -49,22 +54,44 @@ const Navbar = (props) => {
       state: false
     }).then(res =>{ 
       const person = res.data;
-      console.log(person)
+      console.log(person);
+
+    });
+  }
+
+  const getLogOut = async () => {
+    const user = await axios.get(`http://localhost:5000/auth/logout`, {
+      state: false
+    }).then(res =>{ 
+      const person = res.data;
+      console.log(person);
+      //toast
+      toast.success(person.message, {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000
+      });
     });
   }
 
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    history.replace("/login");
-    changeStateUser();
-    setIsShowUserLogin(!isShowUserLogin);
-    props.handleClickSuccess();
+
+    try{
+      localStorage.removeItem("accessToken");
+      history.replace("/login");
+      getLogOut();
+      changeStateUser();
+      setIsShowUserLogin(!isShowUserLogin);
+      props.handleClickSuccess();
+    }
+    catch(e){
+
+    }
   }
 
   return (
     <nav className="navbar">
       <h3 className="logo">
-        <Link to="/" className="logo">My Supply Chain</Link>
+        <Link to="/" className="logo"> My Marketplace</Link>
       </h3>
       <ul className={isMobile ? "nav-links-mobile" : "nav-links"} >
         

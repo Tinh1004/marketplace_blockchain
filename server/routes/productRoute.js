@@ -5,8 +5,12 @@ router.get('/getProducts', productsController.getProducts);
 router.post('/postProduct', productsController.postProduct);
 router.patch('/update/:addressItem', productsController.updateProduct);
 
-//buy
+//getProduct of creator
+router.get('/getProducts/:addressOwner', productsController.getAllProductOfCreator);
+
+//buyer
 router.post('/postBuyProduct/:addressItem', productsController.postBuyProduct);
-router.get('/:addressBuyer', productsController.getAllBuyerProduct);
+router.patch('/buyer/update/:addressItem', productsController.updateBuyer);
+router.get('/getBuyProduct/:addressBuyer', productsController.getAllBuyerProduct);
 
 module.exports = router;

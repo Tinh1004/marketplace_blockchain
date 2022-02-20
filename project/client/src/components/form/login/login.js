@@ -1,6 +1,8 @@
 import React, {useState, useEffect} from "react";
 import loginImg from "../login.svg";
 
+import { ToastContainer, toast } from 'react-toastify';
+
 import getWeb3 from "../../../getWeb3";
 import { useHistory} from "react-router-dom";
 
@@ -33,6 +35,7 @@ export function Login(props) {
   },[props.account])
 
   const handleSubmit = async (e)=>{
+      props.handleChangeLogin(true);
       try {
         e.preventDefault();
         setFormError(validate(useraddress, password))
@@ -40,6 +43,8 @@ export function Login(props) {
       } catch (error) {
         console.log(error);
       }
+      props.handleChangeLogin(false);
+
   }
 
   useEffect(() => {
@@ -77,15 +82,31 @@ export function Login(props) {
           const person = res.data;
           console.log(person)
           login(JSON.stringify(person)); 
+
+          //toast
+          toast.success(person.message, {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+
+          const user =  axios.patch(`http://localhost:5000/auth/updateStateUser/${person.userAddress}`, {
+            state: true
+          }).then(res =>{ 
+            const person = res.data;
+            console.log(person)
+          });
+          
+        })
+        .catch(err =>{
+          
+          //toast
+          toast.error(err.response.data.message, {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+          
         });
 
-      const user = await axios.patch(`http://localhost:5000/auth/updateStateUser/${props.account}`, {
-        state: true
-      }).then(res =>{ 
-        const person = res.data;
-        console.log(person)
-      });
-             
     } catch (err) {
        console.log("Đã xuất hiện lỗi vui lòng thực hiện lại 😓");
     }

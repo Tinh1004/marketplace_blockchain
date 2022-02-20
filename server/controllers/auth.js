@@ -13,6 +13,7 @@ exports.postRegister = async(req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'address Exist!',
+                address: true
             });
         }
         
@@ -23,6 +24,7 @@ exports.postRegister = async(req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'email Exist!',
+                email: true,
             });
         }
         
@@ -62,7 +64,7 @@ exports.postLogin = async (req, res) => {
     const {userAddress,  password} = req.body
     const auth = await Auth.find({userAddress: userAddress});
 
-    console.log(auth[0].password, password)
+    // console.log(auth[0].password, password)
 
     if(!auth.length) {
         console.log("Khong Ton tai");
@@ -74,7 +76,8 @@ exports.postLogin = async (req, res) => {
     }
 
     const validPass = await bcrypt.compare(password, auth[0].password);
-    
+    // console.log(validPass);
+
     if (!validPass) {
         console.log("Sai mk")
         return res.status(400).json({
@@ -82,6 +85,7 @@ exports.postLogin = async (req, res) => {
             message: 'userAddress or password is wrong',
         })
     }
+    
     res.cookie('userAddress', userAddress);
 
     console.log("Login successful!");
@@ -103,9 +107,10 @@ exports.logout = async (req, res) =>{
             message: 'Logged out!',
         });
     } catch (error) {
-        return res.status(500).json({ msg: error.message });
+        return res.status(500).json({ message: "logout failed!" });
     }
 }
+
 exports.getUsers = async (req, res) =>{
     try {
         console.log("User")
@@ -137,12 +142,12 @@ exports.updateStateUser = async (req, res) =>{
 
     console.log("Update state user Success")
 
-    return res.status(200).json({ success: true, msg: "update user Success"});
+    return res.status(200).json({ success: true, message: "update user Success"});
 
     } catch (err) {
         console.log("Update state user failed")
         console.log(err);
-        res.status(500).json({ msg: res.message });
+        res.status(500).json({ message: res.message });
     }
 }
 

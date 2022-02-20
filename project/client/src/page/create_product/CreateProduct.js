@@ -3,14 +3,20 @@ import ItemManagerContract from "../../contracts/ItemManager.json";
 import ItemContract from "../../contracts/Item.json";
 import getWeb3 from "../../getWeb3";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import './index.css';
 
 class CreateProduct extends Component {
-  state = { 
-    cost: 0 , 
-    itemName: "My supplyChain_1", 
-    url : "http://localhost:5000",
-    imageSelect: ""
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      cost: 0,
+      itemName: "My supplyChain_1",
+      url: "http://localhost:5000",
+      imageSelect: "",
+      srcImage: ""
+    };
+  }
 
   componentDidMount = async () => {
     try {
@@ -33,7 +39,6 @@ class CreateProduct extends Component {
         ItemContract.networks[this.networkId] && ItemContract.networks[this.networkId].address,
       );
       console.log(this.itemManager);
-      
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -48,85 +53,128 @@ class CreateProduct extends Component {
     price,
     addressCreator,
     addressItem,
-    url,
+    urlImage,
     indexProduct
   ) => {
     try {
-        const res = await axios.post(`http://localhost:5000/api/products/postProduct`, {
-            nameProuct: nameProuct,
-            price: price,
-            addressCreator: addressCreator,
-            addressItem: addressItem,
-            urlImage: url,
-            indexProduct: indexProduct
-        });
-      } catch (err) {
-       console.log(err);
-    }
-};
+      const res = await axios.post(`http://localhost:5000/api/products/postProduct`, {
+        nameProuct: nameProuct,
+        price: price,
+        addressCreator: addressCreator,
+        addressItem: addressItem,
+        urlImage: urlImage,
+        indexProduct: indexProduct
+      }).then((res) => {
+        const person = res.data
 
-  handleInputChange = (event)=>{
+        //toast
+        toast.success("Item successfully created", {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: 2000
+        });
+
+      });
+    } catch (err) {
+      //toast
+      toast.error("Create Item failed", {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000
+      });
+
+      console.log(err);
+    }
+    this.props.handleChangeLogin(false);
+  };
+
+  handleInputChange = (event) => {
     const target = event.target;
-    const  value = target.type === "checkbox"? target.checked : target.value;
+    const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
-    
-    this.setState({ 
+
+    this.setState({
       [name]: value,
     });
 
   }
 
-  handleSubmit = async ()=>{
-    try{
-
-      if(this.state.cost <= 0 || !this.state.itemName || !this.state.imageSelect){
-        alert("Khong duoc de trong data (cost > 0)");
+  handleSubmit = async () => {
+    this.props.handleChangeLogin(true);
+    try {
+      if (this.state.cost <= 0 || !this.state.itemName || !this.state.imageSelect) {
         this.setState({
-          cost : 0,
-          itemName : "",
+          cost: 0,
+          itemName: "",
           imageSelect: ""
         })
-          return;
-        }
+        this.props.handleChangeLogin(false);
+        //toast
+        toast.error("Create Item failed", {
+          position: toast.POSITION.TOP_RIGHT,
+          autoClose: 2000
+        });
+        return;
+      }
 
-      const {cost, itemName} = this.state;
+      const { cost, itemName, imageSelect } = this.state;
+      console.log(imageSelect);
       let urlImage = "";
       const price = this.web3.utils.toWei(`${cost}`, 'ether');
-      let result =  await this.itemManager.methods.createItem(itemName, price, this.accounts[0])
-        .send({from: this.accounts[0]});
+      let result = await this.itemManager.methods.createItem(itemName, price, this.accounts[0])
+        .send({ from: this.accounts[0] });
 
-        const itemIndex = result.events.SupplyChainStep.returnValues._itemIndex;
-        const step = result.events.SupplyChainStep.returnValues._step;
-        const address = result.events.SupplyChainStep.returnValues._itemAddress;
-      
-        const formData = new FormData();
-        formData.append("file", this.state.imageSelect);
-        formData.append("upload_preset", "mdtcalcz");
+      const indexProduct = result.events.SupplyChainStep.returnValues._itemIndex;
+      const step = result.events.SupplyChainStep.returnValues._step;
+      const address = result.events.SupplyChainStep.returnValues._itemAddress;
 
-        const uploadImage = await axios.post("https://api.cloudinary.com/v1_1/dk4dkhkyn/image/upload", formData)
-          .then((res)=>{
-          console.log("urlImage",res.data.url)
-            urlImage = res.data.url;
-          }).catch((err)=>{console.log("Co loi trong post img")})
+      const formData = new FormData();
+      formData.append("file", imageSelect);
+      formData.append("upload_preset", "mdtcalcz");
 
-      if(result){
+      const uploadImage = await axios.post("https://api.cloudinary.com/v1_1/dk4dkhkyn/image/upload", formData)
+        .then((res) => {
+          console.log("urlImage", res.data.url)
+          urlImage = res.data.url;
+        }).catch((err) => {
+          console.log("Co loi trong post img");
+          console.log(err);
+
+          //toast
+          toast.error("Create Item failed", {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+        })
+        console.log(urlImage);
+
+      if (result) {
         this.postProductCall(
-          itemName, 
-          price, 
+          itemName,
+          price,
           this.accounts[0],
           address,
           urlImage,
-          itemIndex
-          );
+          indexProduct
+        );
       }
-      alert("Send " + cost + " Wei to "+ result.events.SupplyChainStep.returnValues._itemAddress);
+      alert("Send " + cost + " Wei to " + result.events.SupplyChainStep.returnValues._itemAddress);
+      this.props.handleChangeLogin(false);
 
-    }catch(err){
-      alert(err.message)
+    } catch (err) {
+      alert(err.message);
+      this.props.handleChangeLogin(false);
     }
   }
 
-  handleInputFile(value){
+
+  handleInputFile(value) {
+    if (value) {
+      let reader = new FileReader();
+      reader.onload = (e) => {
+        this.setState({srcImage: e.target.result});
+      };
+      reader.readAsDataURL(value);
+    };
+
     this.setState({
       imageSelect: value
     })
@@ -135,24 +183,42 @@ class CreateProduct extends Component {
 
   render() {
     return (
-      <div >
-        <div id="create">
-          <h2>Add Items</h2>
+      < >
 
-          <div id="container">
-            <div id="cost" className="form-create">
-              <label htmlFor="cost">Cost in ether:</label><input type="number" name="cost" value={this.state.cost} onChange={this.handleInputChange}/>
-            </div>
-            <div id="itemName" className=" form-create">
-              <label htmlFor="itemName">Item Identifier:</label><input type="text" name="itemName" value={this.state.itemName} onChange={this.handleInputChange}/>
-            </div>
-            <input type="file" name="file" onChange={(e)=> {
-              this.handleInputFile(e.target.files[0])
-            }}/>
-            <button type="button" onClick={this.handleSubmit}>Create new Item</button>
+        <div class="wrapper">
+          <div class="title">
+            Create Item Form
           </div>
-        </div>
+          <div class="form">
+            <div class="inputfield">
+                <label>Cost Item: </label>
+                <input type="number" className="input" name="cost" value={this.state.cost} onChange={this.handleInputChange} />
+            </div>  
+            <div class="inputfield">
+                <label>Item Identifier: </label>
+                <input type="text" className="input"  name="itemName" value={this.state.itemName} onChange={this.handleInputChange} />
+            </div> 
+
+            <div class="inputfield">
+              <div>
+                <input type="file" name="file" onChange={(e) => {
+                  this.handleInputFile(e.target.files[0])
+                }} />
+              </div>
+              {
+                this.state.srcImage 
+                && <div>
+                  <img className="image-select" src={this.state.srcImage} alt="image"/>
+                </div>
+              }
+            </div>
+
+            <div class="inputfield">
+              <input type="submit" value="Register" className="btn" onClick={this.handleSubmit} value = "Create new Item"/>
+            </div>
+          </div>
       </div>
+      </>
     );
   }
 }

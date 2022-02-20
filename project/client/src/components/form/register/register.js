@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import loginImg from "../login.svg";
 import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
 
 export function Register(props){
 
@@ -12,6 +13,7 @@ export function Register(props){
   const [isSubmit, setIsSubmit] = useState(false);
 
   const handleSubmit = async (e)=>{
+    props.handleChangeLogin(true);
       try {
         e.preventDefault();
         setFormError(validate(useraddress, password, email))
@@ -20,6 +22,8 @@ export function Register(props){
       } catch (error) {
         console.log(error);
       }
+    props.handleChangeLogin(false);
+    
   }
   useEffect(() => {
     setIsSubmit(false);
@@ -58,10 +62,33 @@ export function Register(props){
           userAddress: useraddress,
           password: password,
           email: email
-        });
+        }).then(res=>{
 
+          const person = res.data;
+          toast.success(person.message, {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+
+        });
       } catch (err) {
         console.log("Đã xuất hiện lỗi vui lòng thực hiện lại 😓");
+        if(err.response.data.address){
+          setFormError({useraddress: err.response.data.message});
+          //toast
+          toast.error(err.response.data.message, {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+        }
+        if(err.response.data.email){
+          setFormError({email: err.response.data.message});
+          //toast
+          toast.error(err.response.data.message, {
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2000
+          });
+        }
       }
   };
   return (

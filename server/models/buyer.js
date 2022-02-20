@@ -26,6 +26,10 @@ const buyerSchema = new mongoose.Schema(
             type: String,
             require: true,
         },
+        step: {
+            type: Number,
+            default: 1
+        },
         date: {
             type: Date,
             default: Date.now(),

@@ -1,8 +1,9 @@
 import React, { Component, useState, useEffect } from "react";
 import ItemManagerContract from "../../contracts/ItemManager.json";
-import ItemContract from "../../contracts/Item.json";
 import ListItem from "../../components/item/ListItem"
-import getWeb3 from "../../getWeb3";
+
+import { ToastContainer, toast } from 'react-toastify';
+
 
 import "./home.css";
 import axios from "axios";
@@ -83,8 +84,9 @@ function HomePage(props) {
     console.log(item.price);
     console.log(web3.utils.toWei(`${item.price}`, 'ether'))
     console.log(item.addressItem)
-    console.log(account[0])
     try{
+      props.handleChangeLogin(true);
+      const price = web3.utils.toWei(`${item.price}`, 'ether')
       let result =  await itemManager.methods.triggerPayment(item.index).send({to: item.addressItem, value: web3.utils.toWei(`${item.price}`, 'ether') , from: account});
       
       const res = await axios.patch(`http://localhost:5000/api/products/update/${item.addressItem}`, {
@@ -96,7 +98,7 @@ function HomePage(props) {
 
       const postBuyer = await axios.post(`http://localhost:5000/api/products/postBuyProduct/${item.ownerAddress}`, {
         nameProuct : item.identifier,
-        price : item.price,
+        price : price,
         addressCreator : item.ownerAddress,
         addressItem : item.addressItem,
         addressBuyer : account,
@@ -108,14 +110,29 @@ function HomePage(props) {
       });
 
       alert("Paided item: " + item.addressItem);
+      props.handleChangeLogin(false);
+
+      //toast
+      toast.success("Paided Item Success!!!", {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000
+      });
+
     } catch(e){
       console.log(e)
+      props.handleChangeLogin(false);
+
+      //toast
+      toast.error("Paided Item Failed!!!", {
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 2000
+      });
     }
   }
 
   const handCLickDelivered = async (item) =>{
     try{
-      let result =  await itemManager.methods.triggerDelivery(item.index).send({from: account[0]});
+      let result =  await itemManager.methods.triggerDelivery(item.index).send({from: account});
       alert("Delivered item: " + item.addressItem);
     } catch(e){
       alert("Delivered failed ");
@@ -125,6 +142,7 @@ function HomePage(props) {
   return (
     <div>
       <ListItem 
+        account = {account}
         listItems = {listItems} 
         itemManager = {itemManager} 
         handCLickPaid = {handCLickPaid}

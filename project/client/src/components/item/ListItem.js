@@ -9,6 +9,7 @@ export default function ListItem(props){
           <div id="list" className="container">
             {props.listItems.map(item =>  (
               <Item 
+                account = {props.account}
                 handCLickPaid = {props.handCLickPaid} 
                 item = {item} 
                 key={item.index}

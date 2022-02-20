@@ -1,0 +1,12 @@
+.click_delivery{
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.6rem;
+    color: white;
+    background-color: #027491;
+    cursor: pointer;
+}
+.click_delivery:hover{
+    background-color: #005469;
+    transition: 1s all ease;
+}

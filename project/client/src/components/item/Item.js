@@ -23,6 +23,12 @@ export default function ListItem(props){
         if(convertStep(step) === "Create") return true;
         return false;
     }
+    function checkAccountBuy(){
+        if(props.item.ownerAddress === props.account) return true;
+        return false;
+    }
+    console.log(checkAccountBuy());
+
     return (
 
         <>
@@ -41,13 +47,14 @@ export default function ListItem(props){
 
                   <p className="product-price">{props.item.price} ETH</p>
                   <p className="product-price">{convertStep(step)}</p>
-                  {checkStep() ? <div className="btn-action">
+                  {checkStep() && !checkAccountBuy()? <div className="btn-action">
                       <button
                           onClick={()=> props.handCLickPaid(props.item)}
                           className="item-paid--btn"
                       >
                         Buy
                       </button>
+                      
                   </div> : ''}
               </div>
             </div>

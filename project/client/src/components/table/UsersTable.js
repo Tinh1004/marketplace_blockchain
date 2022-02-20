@@ -61,7 +61,7 @@ function UsersTable(props) {
         <Table className={classes.table} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell className={classes.tableHeaderCell}>Address user</TableCell>
+              <TableCell className={classes.tableHeaderCell}>Info user</TableCell>
               <TableCell className={classes.tableHeaderCell}>Email</TableCell>
               <TableCell className={classes.tableHeaderCell}>Admin / User</TableCell>
               <TableCell className={classes.tableHeaderCell}>Status</TableCell>
